@@ -12,24 +12,21 @@ public static class InfluenceAStar
     private static Dictionary<Vector2Int, Vector2Int> _nodeLinks = new Dictionary<Vector2Int, Vector2Int>();
 
     public static float[][] GridValues;
-    public static Vector3Int[][] GridPositions;
     public static int sliceValue = 4;
 
 
     public static List<Vector2Int> RecalculatePath(Vector2Int start, List<Vector2Int> path, List<Vector2Int> exceptions = null)
     {
+        if (path.Count < sliceValue)
+            return path;
+            
         Vector2Int end = new Vector2Int();
         end = path[sliceValue-1];
         
         path.RemoveRange(0, sliceValue);
-        path.InsertRange(0, GetPath(start, end, exceptions));
 
-        Debug.Log("------------");
-        for (int i = 0; i < sliceValue; i++)
-        {
-            Debug.Log(GridValues[path[i].x][path[i].y]);
-        }
-        
+        path.InsertRange(0, GetPath(start, end));
+
         return path;
     }
 
@@ -43,11 +40,9 @@ public static class InfluenceAStar
         return false;
     }
 
-    public static Vector2Int[] GetPath(Vector2Int start, Vector2Int end, List<Vector2Int> exceptions = null)
+    public static Vector2Int[] GetPath(Vector2Int start, Vector2Int end)
     {
-        if(exceptions == null)
-            exceptions = new List<Vector2Int>();
-        
+
         _nodeLinks.Clear();
         _fScore.Clear();
         _gScore.Clear();
@@ -67,7 +62,7 @@ public static class InfluenceAStar
             _openSet.Remove(current);
             _closedSet[current] = true;
         
-            List<Vector2Int> neighbors = GetNeighbors(current, exceptions);
+            List<Vector2Int> neighbors = GetNeighbors(current);
 
             foreach (Vector2Int node in neighbors)
             {
@@ -76,9 +71,9 @@ public static class InfluenceAStar
 
                 int projectedScoreG;
                 
-                if (ContainsPos(exceptions, node))
-                    projectedScoreG = GetScoreG(current);
-                else
+                //if (ContainsPos(exceptions, node))
+                //    projectedScoreG = GetScoreG(current);
+                //else
                     projectedScoreG = Mathf.RoundToInt(GetScoreG(current) * GridValues[current.x][current.y]);
 
                 
@@ -97,25 +92,25 @@ public static class InfluenceAStar
         return new Vector2Int[0];
     }
 
-    private static List<Vector2Int> GetNeighbors(Vector2Int toSample, List<Vector2Int> exceptions)
+    private static List<Vector2Int> GetNeighbors(Vector2Int toSample)
     {
         List<Vector2Int> neighbors = new List<Vector2Int>();
 
         if (toSample.x + 1 < GridValues.Length)
         {
-            if (GridValues[toSample.x + 1][toSample.y] > 0.1f || ContainsPos(exceptions, toSample))
+            if (GridValues[toSample.x + 1][toSample.y] > 0.1f )
                 neighbors.Add(new Vector2Int(toSample.x + 1, toSample.y));
         }
 
         if (toSample.x - 1 >= 0)
         {
-            if (GridValues[toSample.x - 1][toSample.y] > 0.1f || ContainsPos(exceptions, toSample))
+            if (GridValues[toSample.x - 1][toSample.y] > 0.1f)
                 neighbors.Add(new Vector2Int(toSample.x - 1, toSample.y));
         }
 
         if (toSample.y + 1 < GridValues[toSample.x].Length)
         {
-            if (GridValues[toSample.x][toSample.y + 1] > 0.1f || ContainsPos(exceptions, toSample))
+            if (GridValues[toSample.x][toSample.y + 1] > 0.1f )
                 neighbors.Add(new Vector2Int(toSample.x, toSample.y + 1));
         }
 
